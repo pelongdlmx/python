@@ -1,0 +1,18 @@
+{% extends './layout.html' %} 
+{% block title %} {{data.title}} {% endblock %} 
+{% block body %}
+<h1>{{data.message}}</h1>
+  {% if data.cursos_total > 0 %}
+  <ul>
+    {% for c in data.cursos %}
+    <li>{{ c }}</li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <h2>No hay cursos</h2>
+  {% endif %} 
+  <form action="#" method="POST">
+    <input type="email" name="email" placeholder="Enter Email" value="{{email if email}}"/>
+    <input type="submit" value="submit"/>
+  </form>
+{% endblock %}
