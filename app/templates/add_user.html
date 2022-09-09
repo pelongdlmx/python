@@ -6,4 +6,14 @@
     <input type="email" name="email" placeholder="Enter Email" value=""/>
     <input type="submit" value="submit"/>
   </form>
+  <table class="table table-hover table-bordered table-striped">
+    {% for our_user in our_users %}
+      <tr>
+        <td>{{ our_user.id }}. 
+          <a href=" ">{{ our_user.name }}</a> - {{our_user.username }} - {{ our_user.email }} - PW: {{ our_user.password_hash }} - 
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
 {% endblock %}
+

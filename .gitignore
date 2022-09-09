@@ -1,1 +1,4 @@
-env/Lib
+.gitignore
+
+env/
+multi_session-app/node_modules
