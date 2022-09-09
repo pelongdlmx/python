@@ -1,0 +1,13 @@
+{
+  "name": "multi_session-app",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "yarn frontEnd",
+    "frontEnd": "yarn --cwd ./multi_session-app/ start"
+  },
+  "dependencies": {
+    "python-shell": "^3.0.1"
+  }
+}
