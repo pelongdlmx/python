@@ -1,5 +1,5 @@
 import React, { PureComponent } from "react";
-import bcrypt from "bcryptjs";
+import { Link } from "react-router-dom";
 
 class Login extends PureComponent {
   constructor(props) {
@@ -38,12 +38,12 @@ class Login extends PureComponent {
     e.preventDefault();
     let userName = this.state.email_userName;
     let userPass = this.state.password;
+    this.setState({
+      email_field: false,
+      pass_field: false,
+    });
     if (userName.length > 0 && userPass.length > 0) {
       this.fetchData();
-      this.setState({
-        email_field: false,
-        pass_field: false,
-      });
     } else {
       if (!userName.length) {
         this.setState({
@@ -58,37 +58,24 @@ class Login extends PureComponent {
     }
   };
   fetchData = () => {
-    let url = "/login-newuser";
-    // const salt = bcrypt.genSaltSync(10);
-    const hashedPassword = bcrypt.hashSync(
-      this.state.password,
-      "$2a$10$CwTycUXWue0Thq9StjUM0u"
-    );
-    console.log("diego fecth", hashedPassword);
-    const requestOptions = {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: "Login",
-        user: this.state.email_userName,
-        password: hashedPassword,
-      }),
-    };
-    fetch(url, requestOptions)
-      .then((response) => response.json())
-      .then((data) => console.log(data));
+    let type = "POST";
+    let url = "/login";
+    let email = this.state.email_userName;
+    let pass = this.state.password;
+
+    this.props.fetchData(url, pass, email, type);
   };
   render() {
     return (
       <div className="Auth-form-container">
         <form className="Auth-form">
           <div className="Auth-form-content">
-            <h3 className="Auth-form-title">Sign In</h3>
+            <h3 className="Auth-form-title">Log In</h3>
             <div
               className={`form-group mt-3 ${
                 this.state.email_field ? "has-error" : ""
               }`}>
-              <label>Email address / Username</label>
+              <label>Email address </label>
               <input
                 type="email"
                 className="form-control mt-1"
@@ -118,9 +105,14 @@ class Login extends PureComponent {
                 Submit
               </button>
             </div>
-            {/* <p className="forgot-password text-right mt-2">
-              Forgot <a>password?</a>
-            </p> */}
+            <div className="flex between">
+              <p className="forgot-password mt-2">
+                <Link to="/sign-in">Sign in</Link>
+              </p>
+              <p className="forgot-password  mt-2">
+                <a>Forgot password?</a>
+              </p>
+            </div>
           </div>
         </form>
       </div>

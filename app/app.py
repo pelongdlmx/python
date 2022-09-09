@@ -1,3 +1,4 @@
+from ast import IsNot
 from wsgiref.validate import validator
 from flask import Flask, render_template, request, url_for, redirect
 from flask_sqlalchemy import SQLAlchemy
@@ -77,8 +78,8 @@ def index():
     return render_template("index.html", data=data)
 
 
-@app.route("/login-newuser", methods=["POST"])
-def contact():
+@app.route("/login", methods=["POST"])
+def login():
     if request.method == "POST":
         request_data = request.get_json()
         password = request_data["password"]
@@ -87,8 +88,39 @@ def contact():
         data = {"title": "Contact", "name": userName}
         return data
 
-    # return render_template("contact.html", data=data)
-    # return data
+
+@app.route("/sign-in", methods=["POST", "GET"])
+def sig_in():
+    if request.method == "POST":
+        request_data = request.get_json()
+        name = request_data["name"]
+        userName = request_data["user_name"]
+        user_email = request_data["user_email"]
+        user_pass = request_data["user_pass"]
+
+        userEmailDB = Users.query.filter_by(email=user_email).first()
+        userNameDB = Users.query.filter_by(username=userName).first()
+
+        if userEmailDB is None and userNameDB is None:
+            user = Users(
+                username=userName, name=name, email=user_email, password_hash=user_pass
+            )
+            db.session.add(user)
+            db.session.commit()
+            data = {"response": "Success"}
+            return data
+        else:
+            print(userEmailDB, userNameDB)
+            data = {
+                "response": "Failed",
+                "userEmailExists": True if userEmailDB else False,
+                "userNameExists": True if userNameDB else False,
+            }
+            return data
+
+    data = {"title": "Contact", "name": userName}
+
+    return data
 
 
 def query_string():
