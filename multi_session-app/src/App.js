@@ -54,7 +54,6 @@ class App extends PureComponent {
       );
   };
   render() {
-    console.log("diego app", this.state);
     return (
       <BrowserRouter>
         <Routes>

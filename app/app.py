@@ -49,20 +49,20 @@ def add_user():
 
     our_users = Users.query.order_by(Users.date_added)
 
-    print("ADD_USER:", our_users)
+    # print("ADD_USER:", our_users)
 
     return render_template("add_user.html", our_users=our_users)
 
 
-@app.before_request
-def before_request():
-    print("antes de la peticion")
+# @app.before_request
+# def before_request():
+#     print("antes de la peticion")
 
 
-@app.after_request
-def after_request(response):
-    print("despues de la peticion")
-    return response
+# @app.after_request
+# def after_request(response):
+#     print("despues de la peticion")
+#     return response
 
 
 @app.route("/")
@@ -82,11 +82,26 @@ def index():
 def login():
     if request.method == "POST":
         request_data = request.get_json()
-        password = request_data["password"]
-        userName = request_data["user"]
-        print("route:", userName, password)
-        data = {"title": "Contact", "name": userName}
-        return data
+        password = request_data["user_pass"]
+        userEmail = request_data["user_email"]
+        userPassDB = Users.query.filter_by(password_hash=password).first()
+        userEmailDB = Users.query.filter_by(email=userEmail).first()
+
+        if userPassDB is None and userEmailDB is None:
+            print(userPassDB, userEmailDB)
+            data = {
+                "response": "Failed",
+                "user": True if userEmailDB else False,
+                "password": True if userPassDB else False,
+            }
+            return data
+        else:
+            data = {
+                "response": "Success",
+                "user": True if userEmailDB else False,
+                "pasword": True if userPassDB else False,
+            }
+            return data
 
 
 @app.route("/sign-in", methods=["POST", "GET"])
@@ -97,7 +112,6 @@ def sig_in():
         userName = request_data["user_name"]
         user_email = request_data["user_email"]
         user_pass = request_data["user_pass"]
-
         userEmailDB = Users.query.filter_by(email=user_email).first()
         userNameDB = Users.query.filter_by(username=userName).first()
 

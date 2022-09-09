@@ -63,7 +63,8 @@ class Login extends PureComponent {
     let email = this.state.email_userName;
     let pass = this.state.password;
 
-    this.props.fetchData(url, pass, email, type);
+    // this.props.fetchData(url, pass, email, type);
+    this.props.fetchData(type, url, null, null, email, pass);
   };
   render() {
     return (
