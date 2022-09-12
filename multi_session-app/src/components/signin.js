@@ -1,5 +1,6 @@
 import React, { PureComponent } from "react";
 import { Link } from "react-router-dom";
+import axiosServer from "../functions/axiosServer";
 
 class SignIn extends PureComponent {
   constructor(props) {
@@ -62,7 +63,6 @@ class SignIn extends PureComponent {
       userName_field: false,
       email_field: false,
       pass_field: false,
-      pass_field: false,
       pass_field_2: false,
     });
     if (
@@ -107,16 +107,22 @@ class SignIn extends PureComponent {
       }
     }
   };
-  fetchData = () => {
-    let type = "POST";
-    let url = "/sign-in";
+  fetchData = async () => {
+    let url = "register";
     let name = this.state.name;
-    let userName = this.state.userName;
+    let user = this.state.userName;
     let email = this.state.email;
-    let pass = this.state.password;
+    let password = this.state.password;
 
-    // this.props.fetchData(url, email, pass, type);
-    this.props.fetchData(type, url, name, userName, email, pass);
+    try {
+      const resp = await axiosServer.post(url, { email, password, name, user });
+
+      console.log(resp.data);
+    } catch (error) {
+      if (error.response.status === 401) {
+        alert("Invalid credentials");
+      }
+    }
   };
 
   render() {

@@ -1,56 +1,33 @@
-from ast import IsNot
-from wsgiref.validate import validator
-from flask import Flask, render_template, request, url_for, redirect, session
-from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
-from wtforms import StringField, SubmitField
-from wtforms.validators import DataRequired
-from flask_wtf import FlaskForm
+from flask import Flask,  url_for, redirect, session, request
+from flask_bcrypt import Bcrypt
 from flask_session import Session
-
-
-# https://www.youtube.com/watch?v=0Qxtt4veJIc&list=PLCC34OHNcOtolz2Vd9ZSeSXWc8Bq23yEz&index=2
-
+from config import ApplicationConfig
+from model import db, Users
 
 app = Flask(__name__)
-app.config["SESSION_PERMANENT"] = False
-app.config["SESSION_TYPE"] = "filesystem"
-Session(app)
+app.config.from_object(ApplicationConfig)
 
-# Add Database
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///users.db"
+bcrypt = Bcrypt(app)
+server_session = Session(app)
+db.init_app(app)
 
-app.config["SECRET_KEY"] = "my super secret key that no one is supposed to know"
-
-db = SQLAlchemy(app)
-
-# Create Model
-class Users(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(200), nullable=False, unique=True)
-    name = db.Column(db.String(200), nullable=False)
-    email = db.Column(db.String(120), nullable=False, unique=True)
-    password_hash = db.Column(db.String(128))
-    date_added = db.Column(db.DateTime, default=datetime.utcnow)
-
-    # Create a String
-    def __repr__(self):
-        return "<Name %r>" % self.name
-
-
-class UserForm(FlaskForm):
-    name = StringField("Name", validator=[DataRequired()])
-    email = StringField("Email", validator=[DataRequired()])
-    submit = SubmitField("Submit")
-
-
+with app.app_context(): 
+    db.create_all()
+ 
 @app.route("/user", methods=["POST", "GET"])
-def add_user():
-    # name = None
-    # if name is None:
-    #     user = Users(username='peloneee', name='Diego', email='diegohumberaato33@gmail.com', password_hash='Test123')
-    #     db.session.add(user)
-    #     db.session.commit()
+def show_users():
+    user_id = session.get("user_id")
+
+    if not user_id: 
+        data = {"error": "Unauthorized"}
+        return data, 401
+
+    user = Users.query.filter_by(id=user_id).first()
+    data = {
+        "id": user.id, 
+        "email": user.email
+        }
+    return data
 
     our_users = Users.query.order_by(Users.date_added)
 
@@ -59,19 +36,7 @@ def add_user():
     data = {"users": "USER SHOULD BE HERE"}
     # return render_template("add_user.html", our_users=our_users)
     return data
-
-
-# @app.before_request
-# def before_request():
-#     print("antes de la peticion")
-
-
-# @app.after_request
-# def after_request(response):
-#     print("despues de la peticion")
-#     return response
-
-
+ 
 @app.route("/")
 def index():
     # return "hello there diego"
@@ -82,81 +47,84 @@ def index():
         "cursos": cursos,
         "cursos_total": len(cursos),
     }
-    return render_template("index.html", data=data)
-
+    # return render_template("index.html", data=data)
+    return data
 
 @app.route("/login", methods=["POST"])
-def login():
-    if request.method == "POST":
-        request_data = request.get_json()
-        password = request_data["user_pass"]
-        userEmail = request_data["user_email"]
-        userPassDB = Users.query.filter_by(password_hash=password).first()
-        userEmailDB = Users.query.filter_by(email=userEmail).first()
+def login_user():
 
-        if userPassDB is None and userEmailDB is None:
-            print(userPassDB, userEmailDB)
-            data = {
-                "login": False,
-                "user": True if userEmailDB else False,
-                "password": True if userPassDB else False,
-            }
-            return data
-        else:
-            data = {
-                "login": True,
-            }
-            # add_user()
-            return data
+    # request_data = request.get_json()
+    # password = request_data["password"]
+    # userEmail = request_data["email"]
+    email = request.json['email']
+    password = request.json['password']
+    
+
+    # userPassDB = Users.query.filter_by(password_hash=password).first()
+
+    user = Users.query.filter_by(email=email).first()
+
+    if user is None :
+        data = {
+            "error": "Unauthorized",
+        }
+        return data, 401
+
+    if not bcrypt.check_password_hash(user.password_hash, password): 
+        data = {
+            "error": "Unauthorized",
+        }
+        return  data, 401
+
+    session['user_id'] = user.id
+
+    data = {
+        "id": user.id, 
+        "email": user.email
+        }
+    return data, 200
+
+@app.route('/logout',  methods=["POST"])
+def logout_user(): 
+    session.pop('user_id')
+    return "200"
 
 
-@app.route("/sign-in", methods=["POST", "GET"])
-def sig_in():
+@app.route("/register", methods=["POST" ])
+def register_user():
     if request.method == "POST":
         request_data = request.get_json()
         name = request_data["name"]
-        userName = request_data["user_name"]
-        user_email = request_data["user_email"]
-        user_pass = request_data["user_pass"]
-        userEmailDB = Users.query.filter_by(email=user_email).first()
-        userNameDB = Users.query.filter_by(username=userName).first()
+        user = request_data["user"]
+        email = request_data["email"]
+        password = request_data["password"]
+        
+        userEmailDB = Users.query.filter_by(email=email).first()
+        userNameDB = Users.query.filter_by(username=user).first()
 
         if userEmailDB is None and userNameDB is None:
-            user = Users(
-                username=userName, name=name, email=user_email, password_hash=user_pass
+            pw_hash  =  bcrypt.generate_password_hash(password)
+            new_user = Users(
+                username=user, name=name, email=email, password_hash=pw_hash 
             )
-            db.session.add(user)
+            db.session.add(new_user)
             db.session.commit()
-            data = {"response": "Success"}
-            return redirect("/")
-            # return data
-        else:
-            print(userEmailDB, userNameDB)
             data = {
-                "response": "Failed",
-                "userEmailExists": True if userEmailDB else False,
-                "userNameExists": True if userNameDB else False,
+                "id": new_user.id, 
+                "email": new_user.email
+                }
+            return data
+        else:
+            data = {
+                "response": "Error, user already exists",
             }
             return data
-
-    data = {"title": "Contact", "name": userName}
-
-    return data
-
-
-def query_string():
-    print(request)
-    print(request.args)
-    print(request.args.get("param1"))
-    return "Ok"
-
-
+ 
 def page_not_found(error):
     # return render_template("404.html"), 404
     return redirect(url_for("index"))
 
-
 if __name__ == "__main__":
-    app.add_url_rule("/query_string", view_func=query_string)
+    # app.add_url_rule("/query_string", view_func=query_string)
     app.register_error_handler(404, page_not_found)
     app.run(debug=True, port=5000)

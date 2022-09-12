@@ -1,18 +1,12 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
-import bcrypt from "bcryptjs";
+// import bcrypt from "bcryptjs";
 import React, { PureComponent } from "react";
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-  renderMatches,
-  Redirect,
-  Navigate,
-} from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./components/login";
 import SignIn from "./components/signin";
 import Users from "./components/user";
+// import axiosServer from "./functions/axiosServer";
 
 class App extends PureComponent {
   constructor(props) {
@@ -29,11 +23,7 @@ class App extends PureComponent {
     let userFirstName = name ? name : "";
     let userOtherName = userName ? userName : "";
     let user_email = email ? email : "";
-    let hashedPassword =
-      pass != null
-        ? bcrypt.hashSync(pass, "$2a$10$CwTycUXWue0Thq9StjUM0u")
-        : "";
-    let title = "Request to Flask Sever";
+    let title = "Request to Sever";
 
     const requestOptions = {
       method: type_of_request,
@@ -41,12 +31,12 @@ class App extends PureComponent {
       body: JSON.stringify({
         title: title,
         name: type_of_request === "POST" ? userFirstName : null,
-        user_name: type_of_request === "POST" ? userOtherName : null,
-        user_email: user_email,
-        user_pass: hashedPassword,
+        user: type_of_request === "POST" ? userOtherName : null,
+        email: user_email,
+        password: pass,
       }),
     };
-    fetch(route, url != "/user" ? requestOptions : null)
+    fetch(route, url !== "/user" ? requestOptions : null)
       .then((response) => response.json())
       .then(
         (data) => (
@@ -65,8 +55,8 @@ class App extends PureComponent {
             index
             path="/"
             element={
-              this.state.server_response && this.state.server_response.login ? (
-                <Navigate to="/user" />
+              this.state.server_response && this.state.server_response.id ? (
+                <Navigate to={<Users />} />
               ) : (
                 <Login fetchData={this.fetchData} state={this.state} />
               )

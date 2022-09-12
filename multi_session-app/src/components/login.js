@@ -1,4 +1,5 @@
 import React, { PureComponent } from "react";
+import axiosServer from "../functions/axiosServer";
 import { Link } from "react-router-dom";
 
 class Login extends PureComponent {
@@ -57,14 +58,20 @@ class Login extends PureComponent {
       }
     }
   };
-  fetchData = () => {
-    let type = "POST";
-    let url = "/login";
+  fetchData = async () => {
     let email = this.state.email_userName;
-    let pass = this.state.password;
-
-    // this.props.fetchData(url, pass, email, type);
-    this.props.fetchData(type, url, null, null, email, pass);
+    let password = this.state.password;
+    try {
+      const resp = await axiosServer.post("login", { email, password });
+      if (resp.status === 200) {
+        window.location.href = "/user";
+      }
+      console.log(resp);
+    } catch (error) {
+      if (error.response.status === 401) {
+        alert("Invalid credentials");
+      }
+    }
   };
   render() {
     return (
