@@ -12,6 +12,7 @@ import {
 } from "react-router-dom";
 import Login from "./components/login";
 import SignIn from "./components/signin";
+import Users from "./components/user";
 
 class App extends PureComponent {
   constructor(props) {
@@ -23,12 +24,15 @@ class App extends PureComponent {
   }
 
   fetchData = (type, url, name, userName, email, pass) => {
-    let type_of_request = type;
+    let type_of_request = type ? type : "GET";
     let route = url;
-    let userFirstName = name;
-    let userOtherName = userName;
-    let user_email = email;
-    let hashedPassword = bcrypt.hashSync(pass, "$2a$10$CwTycUXWue0Thq9StjUM0u");
+    let userFirstName = name ? name : "";
+    let userOtherName = userName ? userName : "";
+    let user_email = email ? email : "";
+    let hashedPassword =
+      pass != null
+        ? bcrypt.hashSync(pass, "$2a$10$CwTycUXWue0Thq9StjUM0u")
+        : "";
     let title = "Request to Flask Sever";
 
     const requestOptions = {
@@ -42,7 +46,7 @@ class App extends PureComponent {
         user_pass: hashedPassword,
       }),
     };
-    fetch(route, requestOptions)
+    fetch(route, url != "/user" ? requestOptions : null)
       .then((response) => response.json())
       .then(
         (data) => (
@@ -60,7 +64,18 @@ class App extends PureComponent {
           <Route
             index
             path="/"
-            element={<Login fetchData={this.fetchData} state={this.state} />}
+            element={
+              this.state.server_response && this.state.server_response.login ? (
+                <Navigate to="/user" />
+              ) : (
+                <Login fetchData={this.fetchData} state={this.state} />
+              )
+            }
+          />
+          <Route
+            index
+            path="/user"
+            element={<Users fetchData={this.fetchData} state={this.state} />}
           />
 
           <Route

@@ -1,16 +1,21 @@
 from ast import IsNot
 from wsgiref.validate import validator
-from flask import Flask, render_template, request, url_for, redirect
+from flask import Flask, render_template, request, url_for, redirect, session
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-from wtforms import StringField, PasswordField, SubmitField
+from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 from flask_wtf import FlaskForm
+from flask_session import Session
+
 
 # https://www.youtube.com/watch?v=0Qxtt4veJIc&list=PLCC34OHNcOtolz2Vd9ZSeSXWc8Bq23yEz&index=2
 
 
 app = Flask(__name__)
+app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_TYPE"] = "filesystem"
+Session(app)
 
 # Add Database
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///users.db"
@@ -39,7 +44,7 @@ class UserForm(FlaskForm):
     submit = SubmitField("Submit")
 
 
-@app.route("/index", methods=["POST", "GET"])
+@app.route("/user", methods=["POST", "GET"])
 def add_user():
     # name = None
     # if name is None:
@@ -50,8 +55,10 @@ def add_user():
     our_users = Users.query.order_by(Users.date_added)
 
     # print("ADD_USER:", our_users)
-
-    return render_template("add_user.html", our_users=our_users)
+    # data = {"users": our_users}
+    data = {"users": "USER SHOULD BE HERE"}
+    # return render_template("add_user.html", our_users=our_users)
+    return data
 
 
 # @app.before_request
@@ -90,17 +97,16 @@ def login():
         if userPassDB is None and userEmailDB is None:
             print(userPassDB, userEmailDB)
             data = {
-                "response": "Failed",
+                "login": False,
                 "user": True if userEmailDB else False,
                 "password": True if userPassDB else False,
             }
             return data
         else:
             data = {
-                "response": "Success",
-                "user": True if userEmailDB else False,
-                "pasword": True if userPassDB else False,
+                "login": True,
             }
+            # add_user()
             return data
 
 
@@ -122,7 +128,8 @@ def sig_in():
             db.session.add(user)
             db.session.commit()
             data = {"response": "Success"}
-            return data
+            return redirect("/")
+            # return data
         else:
             print(userEmailDB, userNameDB)
             data = {
