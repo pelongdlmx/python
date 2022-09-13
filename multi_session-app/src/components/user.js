@@ -1,23 +1,34 @@
 import React, { useState, useEffect } from "react";
 import axiosServer from "../functions/axiosServer";
 import { Link } from "react-router-dom";
+import SignIn from "./signin";
 // import { Icon } from "@mui/material";
 
-function bodyTable() {
-  return (
-    <tr>
-      <td className="name">John Doe</td>
-      <td className="user">test</td>
-      <td className="email">example@hotmail.com</td>
-      <td className="pass">pass goes here</td>
-      <td className="pass">date goes here</td>
-      <td className="actions">actions goes here</td>
-    </tr>
-  );
+function bodyTable(data, admin) {
+  let bodyTable = data.map((info, index) => {
+    return (
+      <tr key={index}>
+        {admin ? (
+          <td className="admin_user">
+            {info["admin_user"] === true ? "Yes" : "No"}
+          </td>
+        ) : (
+          ""
+        )}
+        <td className="username">{info["username"]}</td>
+        <td className="name">{info["name"]}</td>
+        <td className="email">{info["email"]}</td>
+        <td className="date_added">{info["date_added"]}</td>
+        <td className="actions"></td>
+      </tr>
+    );
+  });
+  return bodyTable;
 }
 
 function Users() {
   const [user, setUser] = useState("");
+  const [data, setData] = useState();
 
   const logout = async () => {
     await axiosServer.post("logout");
@@ -29,12 +40,14 @@ function Users() {
       try {
         const resp = await axiosServer.get("user");
         setUser(resp.data);
+        setData(resp.data.data);
       } catch (error) {
-        console.log("Not autheticated");
+        console.log("Not authenticated");
       }
     })();
   }, []);
 
+  console.log("diego user", user.admin);
   return (
     <div className="container">
       <h3 className="title">Users:</h3>
@@ -47,25 +60,29 @@ function Users() {
                   <div className="col-md-8">
                     <h2>Data</h2>
                   </div>
-                  <div className="col-md-4">
-                    <button type="button" className="btn btn-info add-new">
-                      <i className="fa fa-plus"></i> Add New
-                    </button>
-                  </div>
+                  {user.admin ? (
+                    <div className="col-md-4">
+                      <button type="button" className="btn btn-info add-new">
+                        <i className="fa fa-plus"></i> Add New
+                      </button>
+                    </div>
+                  ) : null}
                 </div>
               </div>
               <table className="table table-bordered">
                 <thead>
                   <tr>
-                    <th>Name</th>
+                    {user.data && user.admin ? <th>Admin</th> : null}
                     <th>User</th>
+                    <th>Name</th>
                     <th>Email</th>
-                    <th>Pass</th>
                     <th>Date Added</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
-                <tbody>{bodyTable()}</tbody>
+                <tbody>
+                  {data && data.length ? bodyTable(data, user.admin) : null}
+                </tbody>
               </table>
             </div>
           </div>
@@ -83,6 +100,8 @@ function Users() {
       ) : (
         <Link to="/">Log in</Link>
       )}
+
+      {<SignIn admin={user.admin} />}
     </div>
   );
 }

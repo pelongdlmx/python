@@ -3,10 +3,13 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from uuid import uuid4
 
+
 db = SQLAlchemy()
+
 
 def get_uuid():
     return uuid4().hex
+
 
 # Create Model
 class Users(db.Model):
@@ -17,8 +20,4 @@ class Users(db.Model):
     email = db.Column(db.String(120), nullable=False, unique=True)
     password_hash = db.Column(db.String(128))
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
-
-    # Create a String
-    # def __repr__(self):
-    #     return "<Name %r>" % self.name
-
+    admin_user = db.Column(db.Boolean, default=True, nullable=False)

@@ -117,7 +117,10 @@ class SignIn extends PureComponent {
     try {
       const resp = await axiosServer.post(url, { email, password, name, user });
 
-      console.log(resp.data);
+      if (resp.status === 200) {
+        console.log(resp.data);
+        window.location.href = "/user";
+      }
     } catch (error) {
       if (error.response.status === 401) {
         alert("Invalid credentials");
@@ -126,7 +129,7 @@ class SignIn extends PureComponent {
   };
 
   render() {
-    // console.log("diego", this.state);
+    console.log("diego signin", this.props.admin);
     if (this.props.state && this.props.state.server_response) {
       // this.validateServer();
       this.setState({
@@ -136,10 +139,16 @@ class SignIn extends PureComponent {
       });
     }
     return (
-      <div className="Auth-form-container">
+      <div
+        className={`${
+          this.props && this.props.admin ? " centered" : "Auth-form-container"
+        }`}>
         <form className="Auth-form">
           <div className="Auth-form-content">
-            <h3 className="Auth-form-title">Sign In</h3>
+            <h3 className="Auth-form-title">
+              {this.props && this.props.admin ? "Add new user" : "Sign In"}
+            </h3>
+
             <div
               className={`form-group mt-3 ${
                 this.state.name_field ? "has-error" : ""
@@ -210,6 +219,18 @@ class SignIn extends PureComponent {
                 value={this.state.password_conf}
               />
             </div>
+            {this.props && this.props.admin ? (
+              <div
+                className={`form-group mt-3 ${
+                  this.state.pass_field_2 ? "has-error" : ""
+                }`}>
+                <label>Admin:</label>
+                <select className="form-control ">
+                  <option value={true}>Yes</option>
+                  <option value={false}>No</option>
+                </select>
+              </div>
+            ) : null}
             <div className="d-grid gap-2 mt-3">
               <button
                 type="submit"
@@ -218,11 +239,14 @@ class SignIn extends PureComponent {
                 Submit
               </button>
             </div>
-            <div className="flex between">
-              <p className="forgot-password mt-2">
-                <Link to="/">Log In</Link>
-              </p>
-            </div>
+
+            {this.props && this.props.admin ? null : (
+              <div className="flex between">
+                <p className="forgot-password mt-2">
+                  <Link to="/">Log In</Link>
+                </p>
+              </div>
+            )}
           </div>
         </form>
       </div>

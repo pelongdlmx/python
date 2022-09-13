@@ -51,3 +51,21 @@ label {
   font-weight: 600;
   color: rgb(34, 34, 34);
 }
+
+.pt1{
+  padding-top: 1em;
+}
+.pt2{
+  padding-top: 2em;
+}
+
+.pb1{
+  padding-bottom: 1em;
+}
+.pb2{
+  padding-bottom: 2em;
+}
+
+.centered > .Auth-form{
+  margin: auto;
+}
